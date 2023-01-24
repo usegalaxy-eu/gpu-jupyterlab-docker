@@ -7,15 +7,15 @@
 
 Project name: An accessible infrastructure for artificial intelligence using a docker-based Jupyterlab in Galaxy
 
-Project home page: https://github.com/anuprulez/ml-jupyter-notebook, 
+Project home page: https://github.com/usegalaxy-eu/ml-jupyter-notebook, 
 
-Docker file: https://github.com/anuprulez/ml-jupyter-notebook/blob/master/Dockerfile
+Docker file: https://github.com/usegalaxy-eu/ml-jupyter-notebook/blob/master/Dockerfile
 
 Container at Docker hub: https://hub.docker.com/r/anupkumar/docker-ml-jupyterlab (tag: galaxy-integration-0.2)
 
 Galaxy tool (that runs this container): https://github.com/usegalaxy-eu/galaxy/blob/release_22.01_europe/tools/interactive/interactivetool_ml_jupyter_notebook.xml
 
-Data: https://zenodo.org/record/6091361 (to run sample notebooks at https://github.com/anuprulez/gpu_jupyterlab_ct_image_segmentation)
+Data: https://zenodo.org/record/6091361 (to run sample notebooks at https://github.com/usegalaxy-eu/gpu_jupyterlab_ct_image_segmentation)
 
 How to use: Galaxy training network [tutorial](https://training.galaxyproject.org/training-material/topics/statistics/tutorials/gpu_jupyter_lab/tutorial.html)
 
