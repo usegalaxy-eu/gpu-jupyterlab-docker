@@ -15,6 +15,16 @@
 
 export PATH=/home/$NB_USER/.local/bin:$PATH
 
+# Check if the node has GPU. Activate CPU or GPU version of tensorflow
+if nvidia-smi 2> /dev/null; then
+    echo An NVDIA GPU was detected.
+    ln -s /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow-GPU-cached /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow
+else
+    echo No compatible GPU present.
+    ln -s /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow-CPU-cached /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow
+fi
+
+
 python /get_notebook.py
 
 if [ ! -f /import/home_page.ipynb ]; then
