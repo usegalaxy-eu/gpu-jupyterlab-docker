@@ -1,4 +1,7 @@
-FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+
+# CUDA12 and tensorflow 2.12 in pypi are incompatible
+# FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
 
 # Version of python to be installed and used
 ENV PYTHON_VERSION=3.10
@@ -40,9 +43,8 @@ RUN alias python=/usr/bin/python$PYTHON_VERSION
 RUN python -m pip install --upgrade pip requests setuptools pipenv && \
     rm -r ~/.cache/pip
 
-ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-
-ENV PATH=/usr/bin/python$PYTHON_VERSION:$PATH
+# If the user is root, home is under /root, not /home/root
+RUN if [ "${NB_USER}" = "root" ]; then ln -s /root /home/root; fi
 
 ENV CONDA_DIR=/opt/conda \
     SHELL=/bin/bash \
@@ -50,28 +52,30 @@ ENV CONDA_DIR=/opt/conda \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
-    PATH="${CONDA_DIR}/bin:${PATH}" \
-    HOME="/home/${NB_USER}"
+    HOME="/home/${NB_USER}" \
+    REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     sed -i.bak -e 's/^%admin/#%admin/' /etc/sudoers && \
     sed -i.bak -e 's/^%sudo/#%sudo/' /etc/sudoers && \
-    useradd -l -m -s /bin/bash -u $UID $NB_USER && \
+    if [ "${NB_USER}" != "root" ]; then useradd -l -m -s /bin/bash -u $UID $NB_USER; fi && \
     mkdir -p "${CONDA_DIR}" && \
     chown -R "${NB_USER}" "${CONDA_DIR}" && \
     chmod g+w /etc/passwd
 
+
 USER ${NB_USER}
 
-ENV PATH=$CONDA_DIR/bin:$PATH
-ENV PATH=/home/$NB_USER/.local/bin:$PATH
+ENV PATH=/home/$NB_USER/.local/bin:$CONDA_DIR/bin:/usr/bin/python$PYTHON_VERSION:$PATH \
+    PYTHON_LIB_PATH=$CONDA_DIR/lib/python$PYTHON_VERSION/site-packages
 
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -f -b -p /opt/conda && rm -rf ~/miniconda.sh
+    /bin/bash ~/miniconda.sh -f -b -p $CONDA_DIR && rm -rf ~/miniconda.sh
 
-RUN conda install -c conda-forge mamba python==$PYTHON_VERSION && \
-    mamba install -y -q -c "nvidia/label/cuda-12.1.1" cuda-nvcc && \
-    conda clean --all
+RUN conda install -c conda-forge --override-channels mamba && \
+    mamba install -y -q -c conda-forge python==$PYTHON_VERSION && \
+    mamba install -y -q -c "nvidia/label/cuda-11.8.0" cuda-nvcc && \
+    conda clean --all -y
 
 RUN python$PYTHON_VERSION -m pip install \
     aquirdturtle_collapsible_headings==3.1.0 \
@@ -100,6 +104,7 @@ RUN python$PYTHON_VERSION -m pip install \
     onnxruntime==1.15.1 \
     opencv-python==4.7.0.72 \
     tensorflow-cpu==2.11.0 \
+    tensorrt==8.6.1 \
     tf2onnx==1.14.0 \
     skl2onnx==1.14.1 \
     scikit-image==0.21.0 \
@@ -108,11 +113,11 @@ RUN python$PYTHON_VERSION -m pip install \
     "colabfold[alphafold] @ git+https://github.com/sokrypton/ColabFold" && \
     rm -r ~/.cache/pip
 
-RUN sed -i -e "s/jax.tree_flatten/jax.tree_util.tree_flatten/g" /opt/conda/lib/python$PYTHON_VERSION/site-packages/alphafold/model/mapping.py
-RUN sed -i -e "s/jax.tree_unflatten/jax.tree_util.tree_unflatten/g" /opt/conda/lib/python$PYTHON_VERSION/site-packages/alphafold/model/mapping.py
+RUN sed -i -e "s/jax.tree_flatten/jax.tree_util.tree_flatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py
+RUN sed -i -e "s/jax.tree_unflatten/jax.tree_util.tree_unflatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py
 
 # Cache the CPU-optimised version of tensorflow
-RUN mv /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow-CPU-cached
+RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-CPU-cached
 
 # Install GPU version of tensorflow
 RUN python$PYTHON_VERSION -m pip install \
@@ -121,7 +126,7 @@ RUN python$PYTHON_VERSION -m pip install \
     rm -r ~/.cache/pip
 
 # Cache the GPU version of tensorflow
-RUN mv /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow-GPU-cached
+RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-GPU-cached
 
 
 USER root 
@@ -157,6 +162,13 @@ ENV DEBUG=false \
     HISTORY_ID=none \
     REMOTE_HOST=none \
     GALAXY_URL=none
+
+# Put a link of tensorrt in the search path.
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PYTHON_LIB_PATH/tensorrt_libs/
+
+# We also circumvent the hard-coded v8 vs v7 by symlinks
+RUN ln -s $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer_plugin.so.8 $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer_plugin.so.7 && \
+    ln -s $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer.so.8 $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer.so.7
 
 RUN chown -R $NB_USER /home/$NB_USER /import
 

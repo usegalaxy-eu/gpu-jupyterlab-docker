@@ -18,12 +18,11 @@ export PATH=/home/$NB_USER/.local/bin:$PATH
 # Check if the node has GPU. Activate CPU or GPU version of tensorflow
 if nvidia-smi 2> /dev/null; then
     echo An NVDIA GPU was detected.
-    ln -s /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow-GPU-cached /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow
+    ln -s $PYTHON_LIB_PATH/tensorflow-GPU-cached $PYTHON_LIB_PATH/tensorflow
 else
     echo No compatible GPU present.
-    ln -s /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow-CPU-cached /opt/conda/lib/python$PYTHON_VERSION/site-packages/tensorflow
+    ln -s $PYTHON_LIB_PATH/tensorflow-CPU-cached $PYTHON_LIB_PATH/tensorflow
 fi
-
 
 python /get_notebook.py
 
@@ -52,4 +51,8 @@ jupyter trust /import/elyra/*.ipynb
 jupyter trust /import/notebooks/*.ipynb
 jupyter trust /import/usecases/*.ipynb
 
-jupyter lab --no-browser
+if [ "$NB_USER" == "root" ]; then
+    jupyter lab --no-browser --allow-root
+else
+    jupyter lab --no-browser
+fi
