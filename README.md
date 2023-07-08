@@ -12,7 +12,7 @@ Project home page: https://github.com/usegalaxy-eu/gpu-jupyterlab-docker
 
 Docker file: https://github.com/usegalaxy-eu/gpu-jupyterlab-docker/blob/master/Dockerfile
 
-Container at Docker hub: https://hub.docker.com/r/ktunc/docker-ml-jupyterlab/tags (tag: galaxy-integration-0.3)
+Container at Quay.io: https://quay.io/galaxy/docker-ml-jupyterlab/tags
 
 Galaxy tool (that runs this container): https://github.com/usegalaxy-eu/galaxy/blob/release_23.0_europe/tools/interactive/interactivetool_ml_jupyter_notebook.xml
 
@@ -37,11 +37,11 @@ bioToolsID: [gpu-enabled_docker_container_with_jupyterlab_for_ai](https://bio.to
 
 ## Running steps:
 
-1. Download container: `docker pull ktunc/docker-ml-jupyterlab:galaxy-integration-0.3`
+1. Download container: `docker pull quay.io/galaxy/docker-ml-jupyterlab:galaxy-integration-0.3`
 
-2. Run container (on host without Nvidia GPU): `docker run -it -p 8888:8888 -v <<path to local folder>>:/import ktunc/docker-ml-jupyterlab:galaxy-integration-0.3`
+2. Run container (on host without Nvidia GPU): `docker run -it -p 8888:8888 -v <<path to local folder>>:/import quay.io/galaxy/docker-ml-jupyterlab:galaxy-integration-0.3`
 
-3. Run container (on host with Nvidia GPU): `docker run -it --gpus all -p 8888:8888 -v <<path to local folder>>:/import ktunc/docker-ml-jupyterlab:galaxy-integration-0.3`
+3. Run container (on host with Nvidia GPU): `docker run -it --gpus all -p 8888:8888 -v <<path to local folder>>:/import quay.io/galaxy/docker-ml-jupyterlab:galaxy-integration-0.3`
 
 4. Open the link to the Jupyterlab (e.g. `http://<<host>>:8888/ipython/lab`)
 
