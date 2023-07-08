@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  initialise:
+  build_and_publish:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,12 +24,7 @@ jobs:
           registry: quay.io
           username: '$oauthtoken'
           password: ${{ secrets.QUAY_OAUTH_TOKEN }}
-
-  build_and_push:
-    needs: initialise
-    runs-on: ubuntu-latest
     
-    steps:
       - name: Build docker image and push to quay.io
         uses: docker/build-push-action@v4
         with:
