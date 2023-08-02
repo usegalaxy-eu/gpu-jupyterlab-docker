@@ -40,8 +40,8 @@ RUN alias python=/usr/bin/python$PYTHON_VERSION && \
     rm -r ~/.cache/pip
 
 
-ENV NB_USER="root"
-# ENV UID=999
+ENV NB_USER="gpuuser"
+ENV UID=999
 
 # If the user is root, home is under /root, not /home/root
 RUN if [ "${NB_USER}" = "root" ]; then ln -s /root /home/root; fi
@@ -79,7 +79,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
 # Install pip packages into conda's python
 RUN python$PYTHON_VERSION -m pip install \
     aquirdturtle_collapsible_headings==3.1.0 \
-    bokeh==3.2.0 \
+    bokeh==2.4.3 \
     bioblend==1.1.1 \
     biopython==1.81\
     bqplot==0.12.39 \

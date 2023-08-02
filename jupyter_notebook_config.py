@@ -9,7 +9,6 @@ c.ServerApp.password = ''
 c.ServerApp.ip = '0.0.0.0'
 c.ServerApp.port = 8888
 c.ServerApp.open_browser = True
-c.ServerApp.profile = u'default'
 c.IPKernelApp.matplotlib = 'inline'
 
 CORS_ORIGIN = ''
@@ -21,13 +20,14 @@ if os.environ['CORS_ORIGIN'] != 'none':
 
 headers = {
     'X-Frame-Options': 'ALLOWALL',
-        'Content-Security-Policy': """
-            default-src 'self' %(CORS_ORIGIN)s;
-            img-src 'self' %(CORS_ORIGIN)s;
-            connect-src 'self' %(WS_CORS_ORIGIN)s;
-            style-src 'unsafe-inline' 'self' %(CORS_ORIGIN)s;
-            script-src 'unsafe-inline' 'self' %(CORS_ORIGIN)s;
-        """ % {'CORS_ORIGIN': CORS_ORIGIN, 'WS_CORS_ORIGIN': 'ws://%s' % CORS_ORIGIN_HOSTNAME}
+    'Content-Security-Policy':
+        "; ".join([
+            "default-src 'self' https: %(CORS_ORIGIN)s",
+            "img-src 'self' data: %(CORS_ORIGIN)s",
+            "connect-src 'self' %(WS_CORS_ORIGIN)s",
+            "style-src 'unsafe-inline' 'self' %(CORS_ORIGIN)s",
+            "script-src https: 'unsafe-inline' 'unsafe-eval' 'self' %(CORS_ORIGIN)s"
+        ]) % {'CORS_ORIGIN': CORS_ORIGIN, 'WS_CORS_ORIGIN': 'ws://%s' % CORS_ORIGIN_HOSTNAME}
 }
 
 c.ServerApp.allow_origin = '*'
