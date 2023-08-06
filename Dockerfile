@@ -6,9 +6,6 @@ FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 # Version of python to be installed and used
 ENV PYTHON_VERSION=3.10
 
-ENV NB_USER="gpuuser"
-ENV UID=999
-
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update --yes && \
@@ -38,10 +35,13 @@ RUN apt-get update && \
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
     update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
  
-RUN alias python=/usr/bin/python$PYTHON_VERSION
-   
-RUN python -m pip install --upgrade pip requests setuptools pipenv && \
+RUN alias python=/usr/bin/python$PYTHON_VERSION && \
+    python -m pip install --upgrade pip requests setuptools pipenv && \
     rm -r ~/.cache/pip
+
+
+ENV NB_USER="gpuuser"
+ENV UID=999
 
 # If the user is root, home is under /root, not /home/root
 RUN if [ "${NB_USER}" = "root" ]; then ln -s /root /home/root; fi
@@ -69,17 +69,17 @@ USER ${NB_USER}
 ENV PATH=/home/$NB_USER/.local/bin:$CONDA_DIR/bin:/usr/bin/python$PYTHON_VERSION:$PATH \
     PYTHON_LIB_PATH=$CONDA_DIR/lib/python$PYTHON_VERSION/site-packages
 
+# Install conda and into it python and cuda-nvcc
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    /bin/bash ~/miniconda.sh -f -b -p $CONDA_DIR && rm -rf ~/miniconda.sh
-
-RUN conda install -c conda-forge --override-channels mamba && \
-    mamba install -y -q -c conda-forge python==$PYTHON_VERSION && \
-    mamba install -y -q -c "nvidia/label/cuda-11.8.0" cuda-nvcc && \
+    /bin/bash ~/miniconda.sh -f -b -p $CONDA_DIR && \
+    rm -rf ~/miniconda.sh && \
+    conda install -y -q conda-forge::python==$PYTHON_VERSION "nvidia/label/cuda-11.8.0"::cuda-nvcc && \
     conda clean --all -y
 
+# Install pip packages into conda's python
 RUN python$PYTHON_VERSION -m pip install \
     aquirdturtle_collapsible_headings==3.1.0 \
-    bokeh==3.2.0 \
+    bokeh==2.4.3 \
     bioblend==1.1.1 \
     biopython==1.81\
     bqplot==0.12.39 \
@@ -113,8 +113,8 @@ RUN python$PYTHON_VERSION -m pip install \
     "colabfold[alphafold] @ git+https://github.com/sokrypton/ColabFold" && \
     rm -r ~/.cache/pip
 
-RUN sed -i -e "s/jax.tree_flatten/jax.tree_util.tree_flatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py
-RUN sed -i -e "s/jax.tree_unflatten/jax.tree_util.tree_unflatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py
+RUN sed -i -e "s/jax.tree_flatten/jax.tree_util.tree_flatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py && \
+    sed -i -e "s/jax.tree_unflatten/jax.tree_util.tree_unflatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py
 
 # Cache the CPU-optimised version of tensorflow
 RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-CPU-cached
@@ -129,14 +129,14 @@ RUN python$PYTHON_VERSION -m pip install \
 RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-GPU-cached
 
 
-USER root 
+USER root
 
-RUN mkdir -p /home/$NB_USER/.ipython/profile_default/startup/
-RUN mkdir -p /import
-RUN mkdir -p /home/$NB_USER/notebooks/
-RUN mkdir -p /home/$NB_USER/usecases/
-RUN mkdir -p /home/$NB_USER/elyra/
-RUN mkdir -p /home/$NB_USER/data
+RUN mkdir -p /home/$NB_USER/.ipython/profile_default/startup/ && \
+    mkdir -p /import && \
+    mkdir -p /home/$NB_USER/notebooks/ && \
+    mkdir -p /home/$NB_USER/usecases/ && \
+    mkdir -p /home/$NB_USER/elyra/ && \
+    mkdir -p /home/$NB_USER/data
 
 COPY ./startup.sh /startup.sh
 COPY ./get_notebook.py /get_notebook.py
