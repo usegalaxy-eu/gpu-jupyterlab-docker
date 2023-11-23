@@ -1,7 +1,6 @@
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
-
-# CUDA12 and tensorflow 2.12 in pypi are incompatible
-# FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04
+# ^ If doing an upgrade, ensure cuda/cudnn versions are supported by the
+# Tensorflow versions specified below.
 
 # Version of python to be installed and used
 ENV PYTHON_VERSION=3.10
@@ -85,8 +84,8 @@ RUN python$PYTHON_VERSION -m pip install \
     bqplot==0.12.39 \
     elyra==3.15.0 \
     galaxy-ie-helpers==0.2.7 \
-    jax==0.4\
-    jaxlib==0.4\
+    jax==0.4.20\
+    jaxlib==0.4.20\
     jupyter_server==1.24.0 \
     jupyterlab==3.6.5 \
     jupyterlab-nvdashboard==0.8.0 \
