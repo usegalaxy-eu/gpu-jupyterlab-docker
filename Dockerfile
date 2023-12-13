@@ -1,7 +1,6 @@
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
-
-# CUDA12 and tensorflow 2.12 in pypi are incompatible
-# FROM nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu22.04
+# ^ If doing an upgrade, ensure cuda/cudnn versions are supported by the
+# Tensorflow versions specified below.
 
 # Version of python to be installed and used
 ENV PYTHON_VERSION=3.10
@@ -85,8 +84,8 @@ RUN python$PYTHON_VERSION -m pip install \
     bqplot==0.12.39 \
     elyra==3.15.0 \
     galaxy-ie-helpers==0.2.7 \
-    jax==0.3.25 \
-    jaxlib==0.3.25 \
+    jax==0.4.20\
+    jaxlib==0.4.20\
     jupyter_server==1.24.0 \
     jupyterlab==3.6.5 \
     jupyterlab-nvdashboard==0.8.0 \
@@ -99,30 +98,32 @@ RUN python$PYTHON_VERSION -m pip install \
     nbclassic==1.0.0 \
     nibabel==5.1.0 \
     numba==0.57.1 \
-    onnx==1.12.0 \
+    onnx==1.15.0 \
     onnx-tf==1.10.0 \
-    onnxruntime==1.15.1 \
-    opencv-python==4.7.0.72 \
-    tensorflow-cpu==2.11.0 \
+    onnxruntime==1.16.3 \
+    opencv-python==4.8.1.78 \
+    tensorflow-cpu==2.15.0 \
     tensorrt==8.6.1 \
-    tf2onnx==1.14.0 \
+    tf2onnx==1.15.1 \
     skl2onnx==1.14.1 \
-    scikit-image==0.21.0 \
+    scikit-image==0.22.0 \
     seaborn==0.12.2 \
     voila==0.4.1 \
-    "colabfold[alphafold] @ git+https://github.com/sokrypton/ColabFold" && \
+    && \
+    # As of Nov 2023, colabfold requires 0.3.25 <= jax < 0.4.0, which leads to build errors.
+    #"colabfold[alphafold] @ git+https://github.com/sokrypton/ColabFold" && \
     rm -r ~/.cache/pip
 
-RUN sed -i -e "s/jax.tree_flatten/jax.tree_util.tree_flatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py && \
-    sed -i -e "s/jax.tree_unflatten/jax.tree_util.tree_unflatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py
+#RUN sed -i -e "s/jax.tree_flatten/jax.tree_util.tree_flatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py && \
+#    sed -i -e "s/jax.tree_unflatten/jax.tree_util.tree_unflatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py
 
 # Cache the CPU-optimised version of tensorflow
 RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-CPU-cached
 
 # Install GPU version of tensorflow
 RUN python$PYTHON_VERSION -m pip install \
-    tensorflow==2.11.0 \
-    tensorflow_probability==0.20.1 && \
+    tensorflow==2.15.0 \
+    tensorflow_probability==0.23.0 && \
     rm -r ~/.cache/pip
 
 # Cache the GPU version of tensorflow
