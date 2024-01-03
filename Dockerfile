@@ -39,8 +39,8 @@ RUN alias python=/usr/bin/python$PYTHON_VERSION && \
     rm -r ~/.cache/pip
 
 
-ENV NB_USER="root"
-#ENV UID=999
+ENV NB_USER="gpuuser"
+ENV UID=999
 
 # If the user is root, home is under /root, not /home/root
 RUN if [ "${NB_USER}" = "root" ]; then ln -s /root /home/root; fi
@@ -162,7 +162,6 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PYTHON_LIB_PATH/tensorrt_libs/
 RUN ln -s $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer_plugin.so.8 $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer_plugin.so.7 && \
     ln -s $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer.so.8 $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer.so.7
 
-ENV CUDA_DIR=/opt/conda/
 ENV XLA_FLAGS=--xla_gpu_cuda_data_dir=/opt/conda/
 
 RUN chown -R $NB_USER /home/$NB_USER /import
