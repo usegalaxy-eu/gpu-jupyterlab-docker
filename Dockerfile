@@ -39,8 +39,8 @@ RUN alias python=/usr/bin/python$PYTHON_VERSION && \
     rm -r ~/.cache/pip
 
 
-ENV NB_USER="gpuuser"
-ENV UID=999
+ENV NB_USER="root"
+#ENV UID=999
 
 # If the user is root, home is under /root, not /home/root
 RUN if [ "${NB_USER}" = "root" ]; then ln -s /root /home/root; fi
@@ -72,7 +72,7 @@ ENV PATH=/home/$NB_USER/.local/bin:$CONDA_DIR/bin:/usr/bin/python$PYTHON_VERSION
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
     /bin/bash ~/miniconda.sh -f -b -p $CONDA_DIR && \
     rm -rf ~/miniconda.sh && \
-    conda install -y -q conda-forge::python==$PYTHON_VERSION "nvidia/label/cuda-11.8.0"::cuda-nvcc && \
+    conda install -y -q conda-forge::python==$PYTHON_VERSION "nvidia/label/cuda-12.2.2"::cuda-nvcc && \
     conda clean --all -y
 
 # Install pip packages into conda's python
@@ -84,8 +84,6 @@ RUN python$PYTHON_VERSION -m pip install \
     bqplot==0.12.39 \
     elyra==3.15.0 \
     galaxy-ie-helpers==0.2.7 \
-    jax==0.4.20\
-    jaxlib==0.4.20\
     jupyter_server==1.24.0 \
     jupyterlab==3.6.5 \
     jupyterlab-nvdashboard==0.8.0 \
@@ -104,18 +102,12 @@ RUN python$PYTHON_VERSION -m pip install \
     opencv-python==4.8.1.78 \
     tensorflow-cpu==2.15.0 \
     tensorrt==8.6.1 \
-    tf2onnx==1.15.1 \
+    tf2onnx==1.16.0 \
     skl2onnx==1.14.1 \
     scikit-image==0.22.0 \
     seaborn==0.12.2 \
-    voila==0.4.1 \
-    && \
-    # As of Nov 2023, colabfold requires 0.3.25 <= jax < 0.4.0, which leads to build errors.
-    #"colabfold[alphafold] @ git+https://github.com/sokrypton/ColabFold" && \
+    voila==0.4.1 && \
     rm -r ~/.cache/pip
-
-#RUN sed -i -e "s/jax.tree_flatten/jax.tree_util.tree_flatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py && \
-#    sed -i -e "s/jax.tree_unflatten/jax.tree_util.tree_unflatten/g" $PYTHON_LIB_PATH/alphafold/model/mapping.py
 
 # Cache the CPU-optimised version of tensorflow
 RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-CPU-cached
@@ -128,7 +120,6 @@ RUN python$PYTHON_VERSION -m pip install \
 
 # Cache the GPU version of tensorflow
 RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-GPU-cached
-
 
 USER root
 
@@ -170,6 +161,9 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PYTHON_LIB_PATH/tensorrt_libs/
 # We also circumvent the hard-coded v8 vs v7 by symlinks
 RUN ln -s $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer_plugin.so.8 $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer_plugin.so.7 && \
     ln -s $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer.so.8 $PYTHON_LIB_PATH/tensorrt_libs/libnvinfer.so.7
+
+ENV CUDA_DIR=/opt/conda/
+ENV XLA_FLAGS=--xla_gpu_cuda_data_dir=/opt/conda/
 
 RUN chown -R $NB_USER /home/$NB_USER /import
 
