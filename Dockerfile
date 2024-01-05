@@ -61,6 +61,7 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     chown -R "${NB_USER}" "${CONDA_DIR}" && \
     chmod g+w /etc/passwd
 
+
 USER ${NB_USER}
 
 ENV PATH=/home/$NB_USER/.local/bin:$CONDA_DIR/bin:/usr/bin/python$PYTHON_VERSION:$PATH \
@@ -106,6 +107,7 @@ RUN python$PYTHON_VERSION -m pip install \
     seaborn==0.12.2 \
     voila==0.4.1 && \
     rm -r ~/.cache/pip
+
 
 # Cache the CPU-optimised version of tensorflow
 RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-CPU-cached
