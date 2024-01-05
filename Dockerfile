@@ -38,6 +38,7 @@ RUN alias python=/usr/bin/python$PYTHON_VERSION && \
     python -m pip install --upgrade pip requests setuptools pipenv && \
     rm -r ~/.cache/pip
 
+
 ENV NB_USER="gpuuser"
 ENV UID=999
 
@@ -107,7 +108,6 @@ RUN python$PYTHON_VERSION -m pip install \
     seaborn==0.12.2 \
     voila==0.4.1 && \
     rm -r ~/.cache/pip
-
 
 # Cache the CPU-optimised version of tensorflow
 RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-CPU-cached
