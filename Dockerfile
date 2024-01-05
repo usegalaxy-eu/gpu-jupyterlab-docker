@@ -38,7 +38,6 @@ RUN alias python=/usr/bin/python$PYTHON_VERSION && \
     python -m pip install --upgrade pip requests setuptools pipenv && \
     rm -r ~/.cache/pip
 
-
 ENV NB_USER="gpuuser"
 ENV UID=999
 
@@ -61,7 +60,6 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
     mkdir -p "${CONDA_DIR}" && \
     chown -R "${NB_USER}" "${CONDA_DIR}" && \
     chmod g+w /etc/passwd
-
 
 USER ${NB_USER}
 
@@ -113,6 +111,9 @@ RUN python$PYTHON_VERSION -m pip install \
     tensorflow==2.15.0 \
     tensorflow_probability==0.23.0 && \
     rm -r ~/.cache/pip
+
+# Cache the GPU version of tensorflow
+RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-GPU-cached
 
 USER root
 
