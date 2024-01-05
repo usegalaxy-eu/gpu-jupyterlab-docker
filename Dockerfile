@@ -98,6 +98,7 @@ RUN python$PYTHON_VERSION -m pip install \
     onnx-tf==1.10.0 \
     onnxruntime==1.16.3 \
     opencv-python==4.8.1.78 \
+    tensorflow-cpu==2.15.0 \
     tensorrt==8.6.1 \
     tf2onnx==1.16.0 \
     skl2onnx==1.14.1 \
@@ -105,6 +106,9 @@ RUN python$PYTHON_VERSION -m pip install \
     seaborn==0.12.2 \
     voila==0.4.1 && \
     rm -r ~/.cache/pip
+
+# Cache the CPU-optimised version of tensorflow
+RUN mv $PYTHON_LIB_PATH/tensorflow $PYTHON_LIB_PATH/tensorflow-CPU-cached
 
 # Install GPU version of tensorflow
 RUN python$PYTHON_VERSION -m pip install \
